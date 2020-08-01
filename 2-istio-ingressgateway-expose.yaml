@@ -1,0 +1,58 @@
+
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: kiali-gateway
+  namespace: istio-system
+  #namespace: test-exposure
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 15029
+      name: http-kiali
+      protocol: HTTP
+    hosts:
+    #- "kiali.10.236.95.6.nip.io"
+    - "*"
+  - port:
+      number: 15031
+      name: http-grafana
+      protocol: HTTP
+    hosts:
+    #- "kiali.10.236.95.6.nip.io"
+    - "*"
+
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: kiali-vs
+  namespace: istio-system
+  #namespace: test-exposure
+spec:
+  hosts:
+  #- "kiali.10.236.95.6.nip.io"
+  - "*"
+  gateways:
+  - kiali-gateway
+  http:
+  - match:
+    - port: 15029
+    route:
+    - destination:
+        host: kiali.istio-system.svc.cluster.local
+        port:
+          number: 20001
+  - match:
+    - port: 15031
+    #- uri:
+        #prefix: /grafana/
+    route:
+    - destination:
+        host: grafana.istio-system.svc.cluster.local
+        port:
+          number: 3000
+---
